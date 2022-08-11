@@ -5,6 +5,7 @@ const config = "./tests/testingLib.config.json"
 let keys = {}
 let timeout = 0
 let url = ''
+let delayBetween = 0
 
 // Local data
 let tests = []
@@ -135,6 +136,7 @@ fetch(config)
         keys = json.keyMap
         timeout = json.timeout
         url = json.testFile
+        delayBetween = json.delayBetween
 
         fetch(url)
             .then(response => response.json())
