@@ -1,0 +1,20 @@
+[
+    "wait(5000)",
+    "keyPress(enter)",
+    "click(.buttonAccount)",
+    "click(.keyboard)",
+    "typeWithKeyboard(.keyboard,prueba52@hotmail.com)",
+    "click(.accept-button)",
+    "typeWithKeyboard(.keyboard,Password1)",
+    "click(.accept-button)",
+    "waitForElement(.channels-container)",
+    "keyPress(right)",
+    "keyPress(enter)",
+    "waitForElement(.settings-tabs-container)",
+    "keyPress(down)",
+    "keyPress(down)",
+    "keyPress(enter)",
+    "waitForElement(.popup-container)",
+    "keyPress(right)",
+    "keyPress(enter)"
+]

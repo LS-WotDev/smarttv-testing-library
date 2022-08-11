@@ -1,15 +1,14 @@
-const keys = {
-    left: 37,
-    up: 38,
-    right: 39,
-    down: 40,
-    enter: 13,
-}
+// Config file location
+const config = "./tests/testingLib.config.json"
 
-const tests = []
-const report = []
-const timeout = 5000
-const url = './tests/tests.json'
+// Config parameters
+let keys = {}
+let timeout = 0
+let url = ''
+
+// Local data
+let tests = []
+let report = []
 
 function getElement(selector) {
     return new Promise(resolve => {
@@ -130,15 +129,22 @@ function asserts(selector, expected) {
     })
 }
 
-// Run the tests
-fetch(url)
+fetch(config)
     .then(response => response.json())
-    .then(data => {
-        data.forEach(element => {
-            tests.push(element)
-        })
-        runTests()
+    .then(json => {
+        keys = json.keyMap
+        timeout = json.timeout
+        url = json.testFile
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(element => {
+                    tests.push(element)
+                })
+                runTests()
     })
+});
 
 async function runTests() {
     let test = tests.shift()
