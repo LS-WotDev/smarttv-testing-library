@@ -3,7 +3,7 @@
 
 ## Getting Started
 1. Add the tests folder to the project's root
-2. Create a new webpack config with the following plugin:
+2. Create a new webpack config with the following plugin: (An example is included in this repo)
 ```
 plugins: [
     new CopyWebpackPlugin({
