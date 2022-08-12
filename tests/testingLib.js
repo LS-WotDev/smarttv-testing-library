@@ -182,7 +182,7 @@ function generateReport() {
 
         elm.innerHTML = html
     }
-
+    
     report = null
 }
 
@@ -213,17 +213,14 @@ async function runTests() {
 
     fn.apply(null, param).then(res => {
         console.log(res)
-
         if (report != null && command != 'wait') {report.push([1, res])}
 
-        if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
-        (tests.length > 0) ? runTests() : generateReport()  
     }).catch(err => {
         console.log(err)
-
         if (report != null && command != 'wait') {report.push([0, err])}
-
+        
+    }).finally(() => {
         if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
-        (tests.length > 0) ? runTests() : generateReport()  
+        (tests.length > 0) ? runTests() : generateReport()   
     })
 }
