@@ -40,3 +40,21 @@ if (TESTING) {
 ```
 6. Add your commands to tests.json
 7. Launch the app with build-test or start-test
+
+
+## Commands
+```waitForElement(selector)```: Waits for an element to load
+
+```keyPress(key)```: Simulates a key press
+
+```click(selector)```: Simulates a click on a element
+
+```wait(time in ms)```: Adds a delay
+
+```type(selector,text)```: Changes the value of a field
+
+```typeWithKeyboard(selector,text)```: Uses the keyboard with a matching selector to type the given text
+
+```asserts(selector,expected)```: Checks if the value of an element matches an expected value
+
+```beaconStart()```: Starts a timer and prepares a report. Only commands included after this one will be included
