@@ -10,6 +10,7 @@ let delayBetween = 0
 // Local data
 let tests = []
 let report = null 
+let start = null
 
 function getElement(selector) {
     return new Promise((resolve, reject) => {
@@ -137,12 +138,14 @@ function asserts(selector, expected) {
 
 function beaconStart() {
     return new Promise (resolve => {
+        start = Date.now()
         report = []
         resolve('Beacon started')
     })
 }
 
 function generateReport() {
+    let end = Date.now()
     console.log('All tests completed')
 
     if (report.length > 0) {
@@ -150,12 +153,16 @@ function generateReport() {
 
         let success = []
         let failed = []
+        let addedDelays = report.length * delayBetween
+        let timeDelta = Math.ceil((end - start) / 1000)
+        let timeDeltaNoDelays = Math.ceil((end - start - addedDelays) / 1000)
 
         report.forEach((test) => {
             test[0] ? success.push(test[1]) : failed.push(test[1])
         })
 
         let html = `<h1 style='margin-top: 5vh'>Testing Report</h1>`
+        html += `<h2>Finished in ${timeDelta}s (${timeDeltaNoDelays}s without added delays)</h2>`
         html += `<p>${success.length} tests passed</p>`
         html += `<p>${failed.length} tests failed</p>`
 
@@ -207,14 +214,14 @@ async function runTests() {
     fn.apply(null, param).then(res => {
         console.log(res)
 
-        if (report != null) {report.push([1, res])}
+        if (report != null && command != 'wait') {report.push([1, res])}
 
         if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
         (tests.length > 0) ? runTests() : generateReport()  
     }).catch(err => {
         console.log(err)
 
-        if (report != null) {report.push([0, err])}
+        if (report != null && command != 'wait') {report.push([0, err])}
 
         if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
         (tests.length > 0) ? runTests() : generateReport()  
