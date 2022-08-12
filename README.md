@@ -58,3 +58,5 @@ if (TESTING) {
 ```asserts(selector,expected)```: Checks if the value of an element matches an expected value
 
 ```beaconStart()```: Starts a timer and prepares a report. Only commands included after this one will be included
+
+```clear()```: Clears localStorage

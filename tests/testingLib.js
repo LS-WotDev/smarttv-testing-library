@@ -89,6 +89,13 @@ function type(selector, text) {
     })
 }
 
+function clear() {
+    return new Promise(resolve => {
+        localStorage.clear()
+        resolve('Cleared localStorage')
+    })
+}
+
 function typeWithKeyboard(selector, text) {
     return new Promise((resolve, reject) => {
         getElement(selector).then((elm) => {
