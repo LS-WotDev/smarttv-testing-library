@@ -9,16 +9,16 @@ let delayBetween = 0
 
 // Local data
 let tests = []
-let report = []
+let report = null 
 
 function getElement(selector) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
+            resolve(document.querySelector(selector));
         }
 
         const timer = setTimeout(() => {
-            resolve(new Error(`Promise timed out after ${timeout} ms`));
+            reject(`[getElement] Could not find ${selector} after ${timeout} ms`);
         }, timeout);
 
         const observer = new MutationObserver(mutations => {
@@ -37,29 +37,34 @@ function getElement(selector) {
 }
 
 function waitForElement(selector) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         getElement(selector).then((elm) => {
             resolve(`Waited for ${selector}`)
         }).catch(() => {
-            resolve(`Could not find ${selector}`)
+            reject(`[waitForElement] Could not find ${selector}`)
         })
     })
 }
 
 function keyPress(key) {
-    return new Promise(resolve => {
-        window.dispatchEvent(new KeyboardEvent('keydown', {'keyCode': keys[key]}))
-        resolve(`Pressed ${key}`)
+    return new Promise((resolve, reject) => {
+        res = window.dispatchEvent(new KeyboardEvent('keydown', {'keyCode': keys[key]}))
+
+        if (res) {
+            resolve(`Pressed ${key}`)
+        } else {
+            reject(`[keyPress] Could not press ${key}`)
+        }
     })
 }
 
 function click(selector) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         getElement(selector).then((elm) => {
             elm.click()
             resolve(`Clicked on ${selector}`)
         }).catch(() => {
-            resolve(`Could not find ${selector}`)
+            reject(`[click] Could not find ${selector}`)
         })
     })
 }
@@ -73,18 +78,18 @@ function wait(delay) {
 }
 
 function type(selector, text) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         getElement(selector).then((elm) => {
             elm.value = text
             resolve(`Typed ${text} into ${selector}`)
         }).catch(() => {
-            resolve(`Could not find ${selector}`)
+            reject(`[type] Could not find ${selector}`)
         })
     })
 }
 
 function typeWithKeyboard(selector, text) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         getElement(selector).then((elm) => {
             let keyboard = elm.getElementsByTagName('span')
             let keyOptions = {}
@@ -112,22 +117,66 @@ function typeWithKeyboard(selector, text) {
 
             resolve(`Typed ${text} using onScreen keyboard`)
         }).catch(() => {
-            resolve(`Could not find ${selector}`)
+            reject(`[typeWithKeyboard] Could not find ${selector}`)
         })
     })
 }
 
 function asserts(selector, expected) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         getElement(selector).then((elm) => {
             if (elm.value == expected)
-                resolve(`SUCCESS: Value in ${selector} matches ${expected}`)
+                resolve(`Value in ${selector} matches ${expected}`)
             else 
-                resolve(`FAILED: Value in ${selector} does not match ${expected}`)
+                reject(`[asserts] Value in ${selector} does not match ${expected}`)
         }).catch(() => {
-            resolve(`FAILED: Could not find ${selector}`)
+            reject(`[asserts] Could not find ${selector}`)
         })
     })
+}
+
+function beaconStart() {
+    return new Promise (resolve => {
+        report = []
+        resolve('Beacon started')
+    })
+}
+
+function generateReport() {
+    console.log('All tests completed')
+
+    if (report.length > 0) {
+        console.log('Generating report')
+
+        let success = []
+        let failed = []
+
+        report.forEach((test) => {
+            test[0] ? success.push(test[1]) : failed.push(test[1])
+        })
+
+        let html = `<h1 style='margin-top: 5vh'>Testing Report</h1>`
+        html += `<p>${success.length} tests passed</p>`
+        html += `<p>${failed.length} tests failed</p>`
+
+        if (failed.length > 0) {
+            html += `<h2 style='margin-top: 5vh'>Failed tests</h2>`
+            failed.forEach((test) => {
+                html += `<p>${test}</p>`
+            })
+        }
+
+        let elm = document.body
+        elm.style.background = '#ffffff'
+        elm.style.display = 'flex'
+        elm.style.flexDirection = 'column'
+        elm.style.justifyContent = 'center'
+        elm.style.alignItems = 'center'
+
+        elm.innerHTML = html
+    }
+
+    report = null
 }
 
 fetch(config)
@@ -151,14 +200,23 @@ fetch(config)
 async function runTests() {
     let test = tests.shift()
     let command = test.split('(')[0]
-    let param = test.split('(')[1].split(')')[0].split(',')
+    let param = test.split('(').length > 1 ? test.split('(')[1].split(')')[0].split(',') : null
 
     let fn = window[command]
 
-    fn.apply(null, param).then((res) => {
+    fn.apply(null, param).then(res => {
         console.log(res)
 
-        if (command != 'wait') {tests.unshift('wait(500)')}
-        (tests.length > 0) ? runTests() : console.log('All tests completed')  
+        if (report != null) {report.push([1, res])}
+
+        if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
+        (tests.length > 0) ? runTests() : generateReport()  
+    }).catch(err => {
+        console.log(err)
+
+        if (report != null) {report.push([0, err])}
+
+        if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
+        (tests.length > 0) ? runTests() : generateReport()  
     })
 }
