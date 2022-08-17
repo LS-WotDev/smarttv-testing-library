@@ -181,6 +181,8 @@ function generateReport() {
     if (report.length > 0) {
         console.log('Generating report')
 
+        console.log(report)
+
         let success = []
         let failed = []
         let addedDelays = report.length * delayBetween
@@ -251,11 +253,11 @@ async function runTests() {
 
     fn.apply(null, param).then(res => {
         console.log(res)
-        if (report != null && command != 'wait') {report.push([1, res])}
+        if (report != null && command != 'wait' && command != 'checkFocus') {report.push([1, res])}
 
     }).catch(err => {
         console.log(err)
-        if (report != null && command != 'wait') {report.push([0, err])}
+        if (report != null && command != 'wait' && command != 'checkFocus') {report.push([0, err])}
         
     }).finally(() => {
         if (command == 'keyPress') {tests.unshift(`checkFocus(${param})`)}
