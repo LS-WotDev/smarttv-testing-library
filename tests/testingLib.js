@@ -9,8 +9,10 @@ let delayBetween = 0
 
 // Local data
 let tests = []
+let notCompleted = []
 let report = null 
 let start = null
+let clearLocalStorage = false
 
 function getElement(selector) {
     return new Promise((resolve, reject) => {
@@ -49,12 +51,35 @@ function waitForElement(selector) {
 
 function keyPress(key) {
     return new Promise((resolve, reject) => {
-        res = window.dispatchEvent(new KeyboardEvent('keydown', {'keyCode': keys[key]}))
+        let res = window.dispatchEvent(new KeyboardEvent('keydown', {'keyCode': keys[key]}))
 
         if (res) {
             resolve(`Pressed ${key}`)
         } else {
             reject(`[keyPress] Could not press ${key}`)
+        }
+    })
+}
+
+function checkFocus(command) {
+    let foundFocus = false
+
+    return new Promise((resolve, reject) => {
+        document.querySelectorAll('*').forEach((elm) => {
+            elm.classList.forEach((className) => {
+                if (className.includes('focus')) {
+                    foundFocus = true
+                }
+            })
+        })
+
+        if (foundFocus) {
+            resolve(`Focus OK after ${command}`)
+        } else {
+            reject(`[checkFocus] Focus lost after pressing ${command}`)
+            
+            notCompleted = tests
+            tests = []
         }
     })
 }
@@ -86,13 +111,6 @@ function type(selector, text) {
         }).catch(() => {
             reject(`[type] Could not find ${selector}`)
         })
-    })
-}
-
-function clear() {
-    return new Promise(resolve => {
-        localStorage.clear()
-        resolve('Cleared localStorage')
     })
 }
 
@@ -155,6 +173,11 @@ function generateReport() {
     let end = Date.now()
     console.log('All tests completed')
 
+    if (clearLocalStorage) {
+        localStorage.clear()
+        console.log('Local storage cleared')
+    }
+
     if (report.length > 0) {
         console.log('Generating report')
 
@@ -180,6 +203,13 @@ function generateReport() {
             })
         }
 
+        if (notCompleted.length > 0) {
+            html += `<h2 style='margin-top: 5vh'>Unable to complete the following tests (lost focus)</h2>`
+            notCompleted.forEach((test) => {
+                html += `<p>${test}</p>`
+            })
+        }
+
         let elm = document.body
         elm.style.background = '#ffffff'
         elm.style.display = 'flex'
@@ -200,6 +230,7 @@ fetch(config)
         timeout = json.timeout
         url = json.testFile
         delayBetween = json.delayBetween
+        clearLocalStorage = json.clearLocalStorage
 
         fetch(url)
             .then(response => response.json())
@@ -227,6 +258,7 @@ async function runTests() {
         if (report != null && command != 'wait') {report.push([0, err])}
         
     }).finally(() => {
+        if (command == 'keyPress') {tests.unshift(`checkFocus(${param})`)}
         if (command != 'wait' && delayBetween > 0) {tests.unshift(`wait(${delayBetween})`)}
         (tests.length > 0) ? runTests() : generateReport()   
     })

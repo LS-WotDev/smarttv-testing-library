@@ -9,5 +9,6 @@
     },
     "timeout": 5000,
     "delayBetween": 500,
+    "clearLocalStorage": true,
     "testFile": "./tests/tests.json"
 }
